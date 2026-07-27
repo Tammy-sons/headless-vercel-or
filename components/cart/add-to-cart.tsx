@@ -90,8 +90,9 @@ export function AddToCart({
   const optionValueMap = variants.reduce<Record<string, Set<string>>>((acc, variant) => {
     variant.selectedOptions.forEach((option) => {
       const key = option.name.toLowerCase();
-      if (!acc[key]) acc[key] = new Set();
-      acc[key].add(option.value);
+      const set = acc[key] ?? new Set<string>();
+      set.add(option.value);
+      acc[key] = set;
     });
     return acc;
   }, {});
