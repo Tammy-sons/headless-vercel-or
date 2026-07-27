@@ -86,10 +86,28 @@ export function AddToCart({
   const [message, formAction] = useFormState(addItem, null);
   const searchParams = useSearchParams();
 
+  // Build a map of option name -> distinct values across all variants
+  const optionValueMap = variants.reduce<Record<string, Set<string>>>((acc, variant) => {
+    variant.selectedOptions.forEach((option) => {
+      const key = option.name.toLowerCase();
+      if (!acc[key]) acc[key] = new Set();
+      acc[key].add(option.value);
+    });
+    return acc;
+  }, {});
+
   const variant = variants.find((variant: ProductVariant) =>
-    variant.selectedOptions.every(
-      (option) => option.value === searchParams.get(option.name.toLowerCase())
-    )
+    variant.selectedOptions.every((option) => {
+      const key = option.name.toLowerCase();
+      const paramValue = searchParams.get(key);
+
+      // If this option only has one possible value, treat it as auto-selected
+      if (optionValueMap[key]?.size === 1) {
+        return true;
+      }
+
+      return option.value === paramValue;
+    })
   );
 
   const defaultVariantId = variants.length === 1 ? variants[0]?.id : undefined;
