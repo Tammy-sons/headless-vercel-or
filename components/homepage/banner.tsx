@@ -1,13 +1,28 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 export default function Banner() {
     return (
-        <section
-            className="relative w-full h-[60vh] min-h-[500px] flex items-center justify-center overflow-hidden"
-            style={{
-                background: 'linear-gradient(170deg, #1a3a2a 0%, #234d38 45%, #2d6148 100%)'
-            }}
-        >
+        <section className="relative w-full h-[60vh] min-h-[500px] flex items-center justify-center overflow-hidden">
+
+            {/* Background Image */}
+            <Image
+                src="https://cdn11.bigcommerce.com/s-9nn6ejxj73/images/stencil/original/image-manager/treenursery-home.jpg?t=1785181489"
+                alt="Lush garden in bloom"
+                fill
+                priority
+                quality={100}
+                className="object-cover"
+            />
+
+            {/* Dark green gradient overlay for text readability */}
+            <div
+                className="absolute inset-0 z-10"
+                style={{
+                    background: 'linear-gradient(170deg, rgba(26,58,42,0.9) 0%, rgba(35,77,56,0.75) 45%, rgba(45,97,72,0.6) 100%)'
+                }}
+            />
+
             <div className="relative z-20 mx-auto px-6 max-w-7xl text-center flex flex-col items-center">
 
                 <h1
