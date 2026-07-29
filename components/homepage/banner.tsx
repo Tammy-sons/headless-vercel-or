@@ -35,7 +35,7 @@ export default function Banner() {
                     </p>
 
                     <Link
-                        href="/search"
+                        href="/all"
                         className="inline-block px-12 py-4 rounded-full bg-[#1a3a2a] text-white font-bold text-lg transition-all hover:scale-105 hover:bg-[#285e2c] shadow-[0_15px_35px_rgba(0,0,0,0.3)] capitalize tracking-wide"
                     >
                         Shop Now
