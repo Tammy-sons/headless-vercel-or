@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     }
 
     try {
-        const routeRes = await bigCommerceFetch<any>({ query: getEntityIdByRouteQuery, variables: { path } });
+        const routeRes = await bigCommerceFetch<any>({ query: getEntityIdByRouteQuery, variables: { path }, cache: 'no-store' });
         const node = routeRes.body.data?.site?.route?.node;
 
         if (node?.__typename === 'Category') {
@@ -130,7 +130,7 @@ export default async function DynamicPage({
     }
 
     // --- CATEGORY PAGE LAYOUT ---
-    const routeRes = await bigCommerceFetch<any>({ query: getEntityIdByRouteQuery, variables: { path } });
+    const routeRes = await bigCommerceFetch<any>({ query: getEntityIdByRouteQuery, variables: { path }, cache: 'no-store' });
     const node = routeRes.body.data?.site?.route?.node;
 
     if (node?.__typename === 'Category') {
