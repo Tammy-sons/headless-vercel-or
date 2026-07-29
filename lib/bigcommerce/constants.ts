@@ -66,9 +66,9 @@ export const HOME_COLLECTIONS = [
     image: 'https://cdn11.bigcommerce.com/s-kss309bppi/images/stencil/original/image-manager/shrubs-collection.jpg'
   },
   {
-    title: 'Moss',
-    handle: 'moss',
-    image: 'https://cdn11.bigcommerce.com/s-9nn6ejxj73/images/stencil/original/image-manager/moss-collection.jpg?t=1769041167'
+    title: 'Live Stakes',
+    handle: 'live-stakes',
+    image: 'https://cdn11.bigcommerce.com/s-9nn6ejxj73/images/stencil/original/image-manager/live-stakes-for-erosion-control.jpg?t=1776273491'
   },
   {
     title: 'Vines',
