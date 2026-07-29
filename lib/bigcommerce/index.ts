@@ -711,6 +711,8 @@ export async function getPageContentRest(pageId: number) {
 }
 
 
+
+
 export async function getBlogPostsRest() {
   const endpoint = `https://api.bigcommerce.com/stores/${process.env.BIGCOMMERCE_STORE_HASH!}/v2/blog/posts?is_published=true`;
 

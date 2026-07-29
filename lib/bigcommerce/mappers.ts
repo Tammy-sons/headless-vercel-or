@@ -333,8 +333,13 @@ export const bigCommerceToVercelPageContent = (page: BigCommercePage): VercelPag
 export const mapBigCommerceBlogPosts = (posts: any[]) => {
   const storeHash = process.env.BIGCOMMERCE_STORE_HASH;
   return posts.map((post: any) => {
+    console.log('raw post.url:', post.url);
     const path = post.thumbnail_path?.replace(/^\//, '').replace(/product_images\//g, '') || '';
-    const slug = post.url.replace(/^\/blog\//, '').replace(/\/$/, '');
+    const slug = post.url
+      .trim()
+      .replace(/^\/gardening-blog\//, '')
+      .replace(/\/+$/, '');
+    console.log('computed slug:', slug);
 
     return {
       id: post.id,
