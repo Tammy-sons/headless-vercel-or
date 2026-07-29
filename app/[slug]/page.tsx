@@ -40,7 +40,11 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     }
 
     try {
-        const routeRes = await bigCommerceFetch<any>({ query: getEntityIdByRouteQuery, variables: { path }, cache: 'no-store' });
+        const routeRes = await bigCommerceFetch<any>({
+            query: getEntityIdByRouteQuery,
+            variables: { path },
+            revalidate: 3600 // revalidate hourly
+        });
         const node = routeRes.body.data?.site?.route?.node;
 
         if (node?.__typename === 'Category') {
@@ -130,7 +134,11 @@ export default async function DynamicPage({
     }
 
     // --- CATEGORY PAGE LAYOUT ---
-    const routeRes = await bigCommerceFetch<any>({ query: getEntityIdByRouteQuery, variables: { path }, cache: 'no-store' });
+    const routeRes = await bigCommerceFetch<any>({
+        query: getEntityIdByRouteQuery,
+        variables: { path },
+        revalidate: 3600 // revalidate hourly
+    });
     const node = routeRes.body.data?.site?.route?.node;
 
     if (node?.__typename === 'Category') {
@@ -155,10 +163,10 @@ export default async function DynamicPage({
                         <div className="h-1.5 w-24 bg-[#3aae93]"></div>
                     </header>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-16">
                         {products.map((product: any) => (
-                            <div key={product.handle} className="bg-white border border-neutral-100 shadow-sm p-4 flex flex-col items-center">
-                                <Link href={`${product.handle}`} className="relative w-full aspect-square mb-6">
+                            <div key={product.handle} className="bg-white border border-neutral-100 shadow-sm p-2 md:p-4 flex flex-col items-center">
+                                <Link href={`${product.handle}`} className="relative w-full aspect-square mb-3">
                                     <Image
                                         src={product.featuredImage?.url}
                                         alt={product.title}
@@ -168,11 +176,11 @@ export default async function DynamicPage({
                                     />
                                 </Link>
 
-                                <p className="text-lg font-bold text-neutral-800 text-center mb-1 capitalize">
+                                <p className="text-sm md:text-lg font-bold text-neutral-800 text-center mb-1 capitalize leading-tight">
                                     {product.title}
                                 </p>
 
-                                <div className="text-neutral-600 font-semibold text-sm mb-6">
+                                <div className="text-neutral-600 font-semibold text-xs md:text-sm mb-3">
                                     {product.priceRange.minVariantPrice.amount === product.priceRange.maxVariantPrice.amount ? (
                                         `$${Number(product.priceRange.minVariantPrice.amount).toFixed(2)}`
                                     ) : (
@@ -182,7 +190,7 @@ export default async function DynamicPage({
 
                                 <Link
                                     href={`${product.handle}`}
-                                    className="w-full text-white py-3 rounded-full text-center font-bold text-sm capitalize tracking-wider transition-opacity hover:opacity-90 shadow-md"
+                                    className="mt-auto w-full text-white py-2 md:py-3 rounded-full text-center font-bold text-xs md:text-sm capitalize tracking-wider transition-opacity hover:opacity-90 shadow-md"
                                     style={{
                                         backgroundImage: 'linear-gradient(to right, #4e6c25 0%, #254518 51%, #254518 100%)'
                                     }}

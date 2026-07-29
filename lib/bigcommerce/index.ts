@@ -90,12 +90,14 @@ export async function bigCommerceFetch<T>({
   query,
   variables,
   headers,
-  cache = 'force-cache'
+  cache = 'force-cache',
+  revalidate
 }: {
   query: string;
   variables?: ExtractVariables<T>;
   headers?: HeadersInit;
   cache?: RequestCache;
+  revalidate?: number;
 }): Promise<{ status: number; body: T } | never> {
   try {
     const result = await fetch(endpoint, {
@@ -110,8 +112,9 @@ export async function bigCommerceFetch<T>({
         ...(query && { query }),
         ...(variables && { variables })
       }),
-      cache
+      ...(revalidate !== undefined ? { next: { revalidate } } : { cache })
     });
+
 
     const body = await result.json();
 
