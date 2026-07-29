@@ -8,6 +8,9 @@ export const metadata: Metadata = {
     description: 'Practical gardening tips, plant guides, and expert advice.'
 };
 
+export const dynamic = 'force-dynamic';
+
+
 export default async function BlogIndexPage() {
     const posts = await getBlogPostsRest() || [];
 
