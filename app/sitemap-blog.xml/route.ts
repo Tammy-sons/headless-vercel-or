@@ -5,7 +5,7 @@ const rawUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL || 'lo
 const cleanHost = rawUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
 const baseUrl = cleanHost.includes('localhost') ? `http://${cleanHost}` : `https://${cleanHost}`;
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function GET() {
