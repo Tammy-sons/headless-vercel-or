@@ -1,6 +1,5 @@
 import { isVercelCommerceError } from 'lib/type-guards';
 import { notFound } from 'next/navigation';
-import { NextRequest, NextResponse } from 'next/server';
 import { BIGCOMMERCE_GRAPHQL_API_ENDPOINT } from './constants';
 import { mapBigCommerceBlogPosts } from './mappers';
 
@@ -665,34 +664,44 @@ export async function getProductRecommendations(productId: string): Promise<Verc
 export async function getProducts({
   query,
   reverse,
-  sortKey
+  sortKey,
+  first = 250
 }: {
   query?: string;
   reverse?: boolean;
   sortKey?: string;
+  first?: number;
 }): Promise<VercelProduct[]> {
-  const sort = vercelToBigCommerceSorting(reverse ?? false, sortKey);
-  const res = await bigCommerceFetch<BigCommerceSearchProductsOperation>({
-    query: searchProductsQuery,
+  if (query) {
+    const sort = vercelToBigCommerceSorting(reverse ?? false, sortKey);
+    const res = await bigCommerceFetch<BigCommerceSearchProductsOperation>({
+      query: searchProductsQuery,
+      variables: {
+        filters: { searchTerm: query },
+        sort
+      }
+    });
+
+    const productList = res.body.data.site.search.searchProducts.products.edges.map(
+      (item) => item.node
+    );
+    return bigCommerceToVercelProducts(productList);
+  }
+
+  // Bypass TypeScript strict parameter check with inline type assertion
+  const res = await bigCommerceFetch<BigCommerceProductsOperation>({
+    query: getStoreProductsQuery,
     variables: {
-      filters: {
-        searchTerm: query || ''
-      },
-      sort
-    }
+      first
+    } as any
   });
 
-  const productList = res.body.data.site.search.searchProducts.products.edges.map(
-    (item) => item.node
-  );
+  if (!res.body.data.site.products?.edges) {
+    return [];
+  }
 
+  const productList = res.body.data.site.products.edges.map((item) => item.node);
   return bigCommerceToVercelProducts(productList);
-}
-
-// This is called from `app/api/revalidate.ts` so providers can control revalidation logic.
-// eslint-disable-next-line no-unused-vars
-export async function revalidate(req: NextRequest): Promise<NextResponse> {
-  return NextResponse.json({ status: 200, revalidated: true, now: Date.now() });
 }
 
 
