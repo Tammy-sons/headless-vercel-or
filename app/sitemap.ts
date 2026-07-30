@@ -2,22 +2,29 @@ import { getBlogPostsRest, getCollections, getPages } from 'lib/bigcommerce';
 import { validateEnvironmentVariables } from 'lib/utils';
 import { MetadataRoute } from 'next';
 
+// Force Vercel to dynamically re-evaluate sitemap on demand (bypasses static build cache)
+export const revalidate = 3600;
+export const maxDuration = 60;
+
 type Route = {
   url: string;
   lastModified: string;
 };
 
-// Clean host formatting safely
-const rawUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_VERCEL_URL || 'localhost:3000';
+// Ensure URL matches current domain safely
+const rawUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL || 'localhost:3000';
 const cleanHost = rawUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
 const baseUrl = cleanHost.includes('localhost') ? `http://${cleanHost}` : `https://${cleanHost}`;
 
-// Isolated REST helper for sitemap products (fetches up to 250 products safely)
+// Isolated REST helper for catalog products
 async function getSitemapProductsRest() {
   const storeHash = process.env.BIGCOMMERCE_STORE_HASH;
   const accessToken = process.env.BIGCOMMERCE_ACCESS_TOKEN;
 
-  if (!storeHash || !accessToken) return [];
+  if (!storeHash || !accessToken) {
+    console.error('Sitemap Error: Missing BigCommerce Credentials in env');
+    return [];
+  }
 
   try {
     const res = await fetch(
@@ -27,14 +34,19 @@ async function getSitemapProductsRest() {
           'X-Auth-Token': accessToken,
           'Accept': 'application/json'
         },
-        cache: 'no-store'
+        cache: 'no-store' // Critical for Vercel
       }
     );
 
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.error(`BigCommerce API error: ${res.status} ${res.statusText}`);
+      return [];
+    }
+
     const json = await res.json();
     return json.data || [];
-  } catch {
+  } catch (error) {
+    console.error('Failed to fetch products for sitemap:', error);
     return [];
   }
 }
@@ -42,7 +54,7 @@ async function getSitemapProductsRest() {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   validateEnvironmentVariables();
 
-  // 1. Homepage
+  // 1. Static Routes
   const routesMap = [''].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString()
@@ -62,7 +74,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   );
 
-  // 3. Products via REST (Safe & isolated)
+  // 3. Products
   const productsPromise = getSitemapProductsRest().then((products) =>
     products.map((product: any) => ({
       url: `${baseUrl}${product.custom_url?.url || `/${product.sku || product.id}`}`,
@@ -86,10 +98,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   );
 
-  let fetchedRoutes: Route[] = [];
-
   try {
-    fetchedRoutes = (
+    const fetchedRoutes = (
       await Promise.all([
         collectionsPromise,
         productsPromise,
@@ -97,10 +107,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         blogPostsPromise
       ])
     ).flat();
+
+    return [...routesMap, ...fetchedRoutes];
   } catch (error) {
     console.error('Sitemap generation error:', error);
-    fetchedRoutes = [];
+    return routesMap;
   }
-
-  return [...routesMap, ...fetchedRoutes];
 }
