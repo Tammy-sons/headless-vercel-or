@@ -7,9 +7,10 @@ type Route = {
   lastModified: string;
 };
 
-const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-  : 'http://localhost:3000';
+// Ensure baseUrl cleans up any accidental 'https://' from the Vercel variable
+const rawUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_VERCEL_URL || 'localhost:3000';
+const cleanHost = rawUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+const baseUrl = cleanHost.includes('localhost') ? `http://${cleanHost}` : `https://${cleanHost}`;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   validateEnvironmentVariables();
@@ -20,22 +21,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const collectionsPromise = getCollections().then((collections) =>
-    collections.map((collection) => ({
-      url: `${baseUrl}${collection.path}`,
-      lastModified: collection.updatedAt
-    }))
+    collections.map((collection) => {
+      // Strips '/search' if collection.path returns '/search/ferns/' instead of '/ferns/'
+      const cleanPath = collection.path.startsWith('/search')
+        ? collection.path.replace(/^\/search/, '')
+        : collection.path;
+
+      return {
+        url: `${baseUrl}${cleanPath}`,
+        lastModified: collection.updatedAt
+      };
+    })
   );
 
   const productsPromise = getProducts({}).then((products) =>
     products.map((product) => ({
-      url: `${baseUrl}${product.handle}`,
+      // Handle product pathing cleanly
+      url: `${baseUrl}${product.handle.startsWith('/') ? product.handle : `/${product.handle}`}`,
       lastModified: product.updatedAt
     }))
   );
 
   const pagesPromise = getPages().then((pages) =>
     pages.map((page) => ({
-      url: `${baseUrl}/${page.handle}`,
+      url: `${baseUrl}/${page.handle.replace(/^\//, '')}`,
       lastModified: page.updatedAt
     }))
   );
