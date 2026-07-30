@@ -17,7 +17,7 @@ export const getStoreProductsQuery = /* GraphQL */ `
       products(first: $first) {
         edges {
           node {
-            ...productFields
+            ...product
           }
         }
       }
