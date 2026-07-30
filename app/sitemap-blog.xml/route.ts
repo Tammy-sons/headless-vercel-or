@@ -14,10 +14,17 @@ export async function GET() {
     try {
         const posts = await getBlogPostsRest();
         posts.forEach((post: any) => {
+            let lastmod: string;
+            try {
+                lastmod = new Date(post.publishedDate).toISOString();
+            } catch {
+                lastmod = new Date().toISOString();
+            }
+
             entries.push(
                 `  <url>
-    <loc>${baseUrl}/gardening-blog/${post.slug}</loc>
-    <lastmod>${post.publishedDate || new Date().toISOString()}</lastmod>
+    <loc>${baseUrl}/blog/${post.slug}</loc>
+    <lastmod>${lastmod}</lastmod>
   </url>`
             );
         });
