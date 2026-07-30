@@ -665,11 +665,13 @@ export async function getProductRecommendations(productId: string): Promise<Verc
 export async function getProducts({
   query,
   reverse,
-  sortKey
+  sortKey,
+  first = 250
 }: {
   query?: string;
   reverse?: boolean;
   sortKey?: string;
+  first?: number;
 }): Promise<VercelProduct[]> {
   const sort = vercelToBigCommerceSorting(reverse ?? false, sortKey);
   const res = await bigCommerceFetch<BigCommerceSearchProductsOperation>({
