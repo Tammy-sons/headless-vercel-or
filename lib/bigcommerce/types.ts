@@ -221,16 +221,11 @@ export type BigCommerceProductOperation = {
 export type BigCommerceProductsOperation = {
   data: {
     site: {
-      products: {
-        edges: {
-          node: BigCommerceProduct;
-        }[];
-      };
+      products: Connection<BigCommerceProduct>;
     };
   };
   variables: {
-    entityIds?: number[];
-    first?: number;
+    entityIds: number[] | [];
   };
 };
 

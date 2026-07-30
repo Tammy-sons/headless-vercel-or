@@ -665,43 +665,27 @@ export async function getProductRecommendations(productId: string): Promise<Verc
 export async function getProducts({
   query,
   reverse,
-  sortKey,
-  first = 250
+  sortKey
 }: {
   query?: string;
   reverse?: boolean;
   sortKey?: string;
-  first?: number;
 }): Promise<VercelProduct[]> {
-  if (query) {
-    const sort = vercelToBigCommerceSorting(reverse ?? false, sortKey);
-    const res = await bigCommerceFetch<BigCommerceSearchProductsOperation>({
-      query: searchProductsQuery,
-      variables: {
-        filters: { searchTerm: query },
-        sort
-      }
-    });
-
-    const productList = res.body.data.site.search.searchProducts.products.edges.map(
-      (item) => item.node
-    );
-    return bigCommerceToVercelProducts(productList);
-  }
-
-  // Bypass TypeScript strict parameter check with inline type assertion
-  const res = await bigCommerceFetch<BigCommerceProductsOperation>({
-    query: getStoreProductsQuery,
+  const sort = vercelToBigCommerceSorting(reverse ?? false, sortKey);
+  const res = await bigCommerceFetch<BigCommerceSearchProductsOperation>({
+    query: searchProductsQuery,
     variables: {
-      first
-    } as any
+      filters: {
+        searchTerm: query || ''
+      },
+      sort
+    }
   });
 
-  if (!res.body.data.site.products?.edges) {
-    return [];
-  }
+  const productList = res.body.data.site.search.searchProducts.products.edges.map(
+    (item) => item.node
+  );
 
-  const productList = res.body.data.site.products.edges.map((item) => item.node);
   return bigCommerceToVercelProducts(productList);
 }
 
