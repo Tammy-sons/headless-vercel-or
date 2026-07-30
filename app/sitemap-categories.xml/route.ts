@@ -1,4 +1,4 @@
-import { getPages } from 'lib/bigcommerce';
+import { getCollections } from 'lib/bigcommerce';
 import { NextResponse } from 'next/server';
 
 const rawUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL || 'localhost:3000';
@@ -9,23 +9,24 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function GET() {
-    const entries: string[] = [`  <url>
-    <loc>${baseUrl}</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
-  </url>`];
+    const entries: string[] = [];
 
     try {
-        const pages = await getPages();
-        pages.forEach((page) => {
+        const collections = await getCollections();
+        collections.forEach((collection) => {
+            const cleanPath = collection.path.startsWith('/search')
+                ? collection.path.replace(/^\/search/, '')
+                : collection.path;
+
             entries.push(
                 `  <url>
-    <loc>${baseUrl}/${page.handle.replace(/^\//, '')}</loc>
-    <lastmod>${page.updatedAt || new Date().toISOString()}</lastmod>
+    <loc>${baseUrl}${cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`}</loc>
+    <lastmod>${collection.updatedAt || new Date().toISOString()}</lastmod>
   </url>`
             );
         });
     } catch (e) {
-        console.error('sitemap-pages failed', e);
+        console.error('sitemap-categories failed', e);
     }
 
     const body = `<?xml version="1.0" encoding="UTF-8"?>
