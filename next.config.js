@@ -19,6 +19,11 @@ module.exports = {
         source: '/password',
         destination: '/',
         permanent: true
+      },
+      {
+        source: '/gardening-blog/:slug*',
+        destination: '/blog/:slug*',
+        permanent: true
       }
     ];
   }
