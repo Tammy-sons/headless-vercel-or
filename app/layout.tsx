@@ -1,6 +1,7 @@
 import Footer from 'components/layout/footer';
 import Navbar from 'components/layout/navbar';
 import { Inter } from 'next/font/google';
+import Script from 'next/script';
 import { ReactNode, Suspense } from 'react';
 import './globals.css';
 
@@ -52,6 +53,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="en" className={inter.variable} style={{ colorScheme: 'light' }}>
       <body className="flex min-h-screen flex-col bg-neutral-50 text-black selection:bg-teal-300">
+        <Script src="https://analytics.ahrefs.com/analytics.js" strategy="beforeInteractive" data-key="+szW6AN1qxsBO52rxmBpfA" async />
         <Navbar />
         <Suspense>
           <main className="flex-grow">
