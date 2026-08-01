@@ -15,6 +15,7 @@ import {
 import {
   addCartLineItemMutation,
   createCartMutation,
+  deleteCartLineItemMutation,
   updateCartLineItemMutation
 } from './mutations/cart';
 import { getCartQuery } from './queries/cart';
@@ -42,6 +43,7 @@ import {
   BigCommerceCollectionOperation,
   BigCommerceCollectionsOperation,
   BigCommerceCreateCartOperation,
+  BigCommerceDeleteCartItemOperation,
   BigCommerceEntityIdOperation,
   BigCommerceFeaturedProductsOperation,
   BigCommerceMenuOperation,
@@ -301,6 +303,49 @@ export async function addToCart(
   // No longer building the full VercelCart here — actions.ts only needs the ID.
   // getCart() (called after revalidateTag) builds the full cart once, not twice.
   return { entityId: bigCommerceCart.entityId };
+}
+
+export async function removeFromCart(cartId: string, lineIds: string[]): Promise<VercelCart | undefined> {
+  let cartState: { status: number; body: BigCommerceDeleteCartItemOperation };
+  const removeCartItem = async (itemId: string) => {
+    const res = await bigCommerceFetch<BigCommerceDeleteCartItemOperation>({
+      query: deleteCartLineItemMutation,
+      variables: {
+        deleteCartLineItemInput: {
+          cartEntityId: cartId,
+          lineItemEntityId: itemId
+        }
+      },
+      cache: 'no-store'
+    });
+
+    return res;
+  };
+
+  if (lineIds.length === 1) {
+    cartState = await removeCartItem(lineIds[0]!);
+  } else if (lineIds.length > 1) {
+    let operations = lineIds.length;
+
+    while (operations > 0) {
+      operations--;
+      cartState = await removeCartItem(lineIds[operations]!);
+    }
+  }
+
+  const cart = cartState!.body.data.cart.deleteCartLineItem.cart;
+
+  if (cart === null) {
+    return undefined;
+  }
+
+  const lines = vercelFromBigCommerceLineItems(cart.lineItems);
+  const { productsByIdList, checkout, checkoutUrl } = await getBigCommerceProductsWithCheckout(
+    cartId,
+    lines
+  );
+
+  return bigCommerceToVercelCart(cart, productsByIdList, checkout, checkoutUrl);
 }
 
 // NOTE: update happens on product & variant levels w/t optionEntityId
