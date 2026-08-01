@@ -90,7 +90,7 @@ export async function bigCommerceFetch<T>({
   variables,
   headers,
   cache,
-  revalidate = 60
+  revalidate
 }: {
   query: string;
   variables?: ExtractVariables<T>;
@@ -99,6 +99,10 @@ export async function bigCommerceFetch<T>({
   revalidate?: number;
 }): Promise<{ status: number; body: T } | never> {
   try {
+    const cacheOptions = cache
+      ? { cache }
+      : { next: { revalidate: revalidate ?? 60 } };
+
     const result = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -111,7 +115,7 @@ export async function bigCommerceFetch<T>({
         ...(query && { query }),
         ...(variables && { variables })
       }),
-      ...(revalidate !== undefined ? { next: { revalidate } } : { cache })
+      ...cacheOptions
     });
 
 
