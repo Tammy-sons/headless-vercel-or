@@ -141,15 +141,21 @@ export default async function DynamicPage({
                                     )}
                                 </div>
 
-                                <Link
-                                    href={`${product.handle}`}
-                                    className="mt-auto w-full text-white py-2 md:py-3 rounded-full text-center font-bold text-xs md:text-sm capitalize tracking-wider transition-opacity hover:opacity-90 shadow-md"
-                                    style={{
-                                        backgroundImage: 'linear-gradient(to right, #4e6c25 0%, #254518 51%, #254518 100%)'
-                                    }}
-                                >
-                                    Buy now
-                                </Link>
+                                {product.availableForSale ? (
+                                    <Link
+                                        href={`${product.handle}`}
+                                        className="mt-auto w-full text-white py-2 md:py-3 rounded-full text-center font-bold text-xs md:text-sm capitalize tracking-wider transition-opacity hover:opacity-90 shadow-md"
+                                        style={{
+                                            backgroundImage: 'linear-gradient(to right, #4e6c25 0%, #254518 51%, #254518 100%)'
+                                        }}
+                                    >
+                                        Buy now
+                                    </Link>
+                                ) : (
+                                    <div className="mt-auto w-full py-2 md:py-3 rounded-full text-center font-bold text-xs md:text-sm capitalize tracking-wider bg-neutral-200 text-neutral-500 cursor-not-allowed">
+                                        Out of Stock
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>

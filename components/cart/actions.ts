@@ -24,11 +24,11 @@ export async function addItem(
   }
 
   try {
-    const { id } = await addToCart(cartId ?? '', [
+    const { entityId } = await addToCart(cartId ?? '', [
       { merchandiseId: selectedVariantId, quantity, productId: selectedProductId }
     ]);
     revalidateTag(TAGS.cart);
-    cookies().set('cartId', id);
+    cookies().set('cartId', entityId);
   } catch (e) {
     return 'Error adding item to cart';
   }

@@ -12,9 +12,9 @@ export const getProductQuery = /* GraphQL */ `
 `;
 
 export const getStoreProductsQuery = /* GraphQL */ `
-  query getStoreProducts($first: Int = 250) {
+  query getStoreProducts($entityIds: [Int!], $first: Int = 250) {
     site {
-      products(first: $first) {
+      products(entityIds: $entityIds, first: $first) {
         edges {
           node {
             ...product

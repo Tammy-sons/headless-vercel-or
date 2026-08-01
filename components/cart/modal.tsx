@@ -105,16 +105,22 @@ export default function CartModal({ cart }: { cart: Cart | undefined }) {
                               className="z-30 flex flex-row space-x-4"
                             >
                               <div className="relative h-16 w-16 cursor-pointer overflow-hidden rounded-md border border-neutral-300 bg-neutral-300">
-                                <Image
-                                  className="h-full w-full object-cover"
-                                  width={64}
-                                  height={64}
-                                  alt={
-                                    item.merchandise.product.featuredImage.altText ||
-                                    item.merchandise.product.title
-                                  }
-                                  src={item.merchandise.product.featuredImage.url}
-                                />
+                                {item.merchandise.product.featuredImage?.url ? (
+                                  <Image
+                                    className="h-full w-full object-cover"
+                                    width={64}
+                                    height={64}
+                                    alt={
+                                      item.merchandise.product.featuredImage.altText ||
+                                      item.merchandise.product.title
+                                    }
+                                    src={item.merchandise.product.featuredImage.url}
+                                  />
+                                ) : (
+                                  <div className="flex h-full w-full items-center justify-center bg-neutral-200">
+                                    <span className="text-[8px] font-bold text-neutral-400 uppercase">No Image</span>
+                                  </div>
+                                )}
                               </div>
 
                               <div className="flex flex-1 flex-col text-base">

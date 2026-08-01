@@ -15,7 +15,6 @@ import {
 import {
   addCartLineItemMutation,
   createCartMutation,
-  deleteCartLineItemMutation,
   updateCartLineItemMutation
 } from './mutations/cart';
 import { getCartQuery } from './queries/cart';
@@ -43,7 +42,6 @@ import {
   BigCommerceCollectionOperation,
   BigCommerceCollectionsOperation,
   BigCommerceCreateCartOperation,
-  BigCommerceDeleteCartItemOperation,
   BigCommerceEntityIdOperation,
   BigCommerceFeaturedProductsOperation,
   BigCommerceMenuOperation,
@@ -89,8 +87,8 @@ export async function bigCommerceFetch<T>({
   query,
   variables,
   headers,
-  cache = 'force-cache',
-  revalidate
+  cache,
+  revalidate = 60
 }: {
   query: string;
   variables?: ExtractVariables<T>;
@@ -173,13 +171,25 @@ const getBigCommerceProductsWithCheckout = async (
   const productIds = lines.map(({ merchandiseId, productId }) =>
     parseInt(productId ?? merchandiseId, 10)
   );
-  const bigCommerceProductListRes = await bigCommerceFetch<BigCommerceProductsOperation>({
-    query: getStoreProductsQuery,
-    variables: {
-      entityIds: productIds
-    },
-    cache: 'no-store'
-  });
+
+  const [bigCommerceProductListRes, resCheckout, checkoutUrlRes] = await Promise.all([
+    bigCommerceFetch<BigCommerceProductsOperation>({
+      query: getStoreProductsQuery,
+      variables: {
+        entityIds: productIds
+      },
+      cache: 'no-store'
+    }),
+    bigCommerceFetch<BigCommerceCheckoutOperation>({
+      query: getCheckoutQuery,
+      variables: {
+        entityId: cartId
+      },
+      cache: 'no-store'
+    }),
+    memoizedCartRedirectUrl(cartId)
+  ]);
+
   const bigCommerceProductList = bigCommerceProductListRes.body.data.site.products.edges.map(
     (product) => product.node
   );
@@ -196,13 +206,6 @@ const getBigCommerceProductsWithCheckout = async (
   };
   const bigCommerceProducts = createProductList(productIds, bigCommerceProductList);
 
-  const resCheckout = await bigCommerceFetch<BigCommerceCheckoutOperation>({
-    query: getCheckoutQuery,
-    variables: {
-      entityId: cartId
-    },
-    cache: 'no-store'
-  });
   const checkout = resCheckout.body.data.site.checkout ?? {
     subtotal: {
       value: 0,
@@ -218,7 +221,6 @@ const getBigCommerceProductsWithCheckout = async (
     }
   };
 
-  const checkoutUrlRes = await memoizedCartRedirectUrl(cartId);
   const checkoutUrl = checkoutUrlRes.data?.embedded_checkout_url;
 
   return {
@@ -256,7 +258,7 @@ export async function createCart(): Promise<VercelCart> {
 export async function addToCart(
   cartId: string,
   lines: { merchandiseId: string; quantity: number; productId?: string }[]
-): Promise<VercelCart> {
+): Promise<{ entityId: string }> {
   let bigCommerceCart: BigCommerceCart;
 
   if (cartId) {
@@ -296,56 +298,9 @@ export async function addToCart(
     bigCommerceCart = res.body.data.cart.createCart.cart;
   }
 
-  const { productsByIdList, checkout, checkoutUrl } = await getBigCommerceProductsWithCheckout(
-    bigCommerceCart.entityId,
-    lines
-  );
-
-  return bigCommerceToVercelCart(bigCommerceCart, productsByIdList, checkout, checkoutUrl);
-}
-
-export async function removeFromCart(cartId: string, lineIds: string[]): Promise<VercelCart | undefined> {
-  let cartState: { status: number; body: BigCommerceDeleteCartItemOperation };
-  const removeCartItem = async (itemId: string) => {
-    const res = await bigCommerceFetch<BigCommerceDeleteCartItemOperation>({
-      query: deleteCartLineItemMutation,
-      variables: {
-        deleteCartLineItemInput: {
-          cartEntityId: cartId,
-          lineItemEntityId: itemId
-        }
-      },
-      cache: 'no-store'
-    });
-
-    return res;
-  };
-
-  if (lineIds.length === 1) {
-    cartState = await removeCartItem(lineIds[0]!);
-  } else if (lineIds.length > 1) {
-    // NOTE: can it happen at all??
-    let operations = lineIds.length;
-
-    while (operations > 0) {
-      operations--;
-      cartState = await removeCartItem(lineIds[operations]!);
-    }
-  }
-
-  const cart = cartState!.body.data.cart.deleteCartLineItem.cart;
-
-  if (cart === null) {
-    return undefined;
-  }
-
-  const lines = vercelFromBigCommerceLineItems(cart.lineItems);
-  const { productsByIdList, checkout, checkoutUrl } = await getBigCommerceProductsWithCheckout(
-    cartId,
-    lines
-  );
-
-  return bigCommerceToVercelCart(cart, productsByIdList, checkout, checkoutUrl);
+  // No longer building the full VercelCart here — actions.ts only needs the ID.
+  // getCart() (called after revalidateTag) builds the full cart once, not twice.
+  return { entityId: bigCommerceCart.entityId };
 }
 
 // NOTE: update happens on product & variant levels w/t optionEntityId
