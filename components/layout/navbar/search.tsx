@@ -41,7 +41,7 @@ export default function Search() {
           name="search"
           placeholder="Search plants..."
           defaultValue={searchParams?.get('q') || ''}
-          className="w-full rounded-full border border-neutral-200 bg-neutral-50 py-2 pl-4 pr-10 text-base outline-none focus:border-[#285e2c] dark:border-neutral-800 dark:bg-transparent"
+          className="w-full rounded-full border border-neutral-200 bg-white py-2 pl-4 pr-10 text-base text-black outline-none placeholder:text-neutral-500 focus:border-[#285e2c]"
         />
         <button type="submit" className="absolute right-3">
           <MagnifyingGlassIcon className="h-4 w-4 text-neutral-500" />
